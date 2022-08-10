@@ -20,7 +20,7 @@ int thresh = 600;
 
 //#define DEBUG
 
-float kp = 1.0;
+float kp = 0.5;
 float kd = 1;
 
 int left_pwm;
