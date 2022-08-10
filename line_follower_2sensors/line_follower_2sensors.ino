@@ -44,6 +44,11 @@ void setup()
 
   pinMode(LEFT_LED, OUTPUT);
   pinMode(RIGHT_LED, OUTPUT);
+
+  // This sets frequecny as 7812.5 hz.
+  // https://github.com/un0038998/LineFollowerRobot/
+  TCCR0B = TCCR0B & B11111000 | B00000010 ; 
+  
 }
 
 void loop()
@@ -181,7 +186,7 @@ void turn(int diff)
   right_pwm_delta_last = right_pwm_delta;
 
   delay(DELAY_MS);
-  stop_motor();
+  // stop_motor();
 }
 
 void left(int pwm_val)
