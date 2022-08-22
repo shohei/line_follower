@@ -9,6 +9,8 @@
 #include <MsTimer2.h>
 #include "Adafruit_TCS34725.h"
 
+#include "led.h"
+
 /* Color sensor settings */
 #define commonAnode true
 byte gammatable[256];
@@ -16,22 +18,19 @@ Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS3472
 /* End of color sensor settings */
 
 // #define DEBUG
-#define L_LED 6 //Timer 0A
-#define R_LED 10 //Timer 1B
-#define PWM_VAL 100
 
-int left_ctrl = 2;       // define direction control pin of A motor
-int left_pwm = 9;        // define PWM control pin of A motor: Timer 1A
-int right_ctrl = 4;      // define direction control pin of B motor
-int right_pwm = 5;       // define PWM control pin of B motor: Timer 0B
-int sensor_l = A1;       // define the pin of left line tracking sensor
-int sensor_c = A2;       // define the pin of middle line tracking sensor
-int sensor_r = A3;       // define the pin of right line tracking sensor
+int left_ctrl = 2;  // define direction control pin of A motor
+int left_pwm = 9;   // define PWM control pin of A motor: Timer 1A
+int right_ctrl = 4; // define direction control pin of B motor
+int right_pwm = 5;  // define PWM control pin of B motor: Timer 0B
+int sensor_l = A1;  // define the pin of left line tracking sensor
+int sensor_c = A2;  // define the pin of middle line tracking sensor
+int sensor_r = A3;  // define the pin of right line tracking sensor
 
 /* Ultrasonic sensor settings */
-#include "SR04.h"         //define the library of ultrasonic sensor
-#define TRIG_PIN 12       // set the signal input of ultrasonic sensor to D12
-#define ECHO_PIN 13       // set the signal output of ultrasonic sensor to D13
+#include "SR04.h"   //define the library of ultrasonic sensor
+#define TRIG_PIN 12 // set the signal input of ultrasonic sensor to D12
+#define ECHO_PIN 13 // set the signal output of ultrasonic sensor to D13
 SR04 sr04 = SR04(ECHO_PIN, TRIG_PIN);
 long distance1, distance2, distance3; // define three distance
 const int servopin = 3;               // set the pin of servo to D10: OC2B. Pin 11: OC2A
@@ -43,11 +42,13 @@ int val;
 /* Line sensor settings */
 int l_val, c_val, r_val; // define these variables
 int LFSensor[3] = {0, 0, 0};
+int LFSensor_prev[3] = {0, 0, 0};
 int mode = 0;
 
 #define STOPPED 0
 #define FOLLOWING_LINE 1
 #define NO_LINE 2
+#define RECOVER_MODE 3
 
 float Kp = 30;
 float Ki = 0.7;
@@ -63,13 +64,30 @@ const int adj = 1;
 int leftMotorSpeed = iniMotorPower;
 int rightMotorSpeed = iniMotorPower;
 
-enum color_enum {
+enum color_enum
+{
   enum_red,
   enum_blue,
   enum_green,
-  enum_white 
+  enum_white
 };
 color_enum colorStatus = enum_white;
+
+enum operation_enum
+{
+  following,
+  obstacle_avoidance,
+  perpendicular
+};
+operation_enum operationStatus = following;
+
+enum fail_mode_enum
+{
+  no_failure,
+  diverted_left,
+  diverted_right,
+};
+fail_mode_enum failStatus = no_failure;
 
 void setup()
 {
@@ -91,6 +109,9 @@ void setup()
   init_color_sensor();
   generate_gamma_table();
 
+  servopulse(servopin, 90); // the angle of servo is 90 degree
+  delay(300);
+
   MsTimer2::set(20, motorDriveRoutine); // 500ms period
   MsTimer2::start();
 }
@@ -99,42 +120,80 @@ void loop()
 {
   read_color_sensor();
   delay(60);
+
+  distance1 = sr04.Distance();             // obtain the value detected by ultrasonic sensor
+  if ((distance1 < 10) && (distance1 > 0)) // if the distance is greater than 0 and less than 10
+  {
+    avoid();
+  }
 }
 
-void motorDriveRoutine(){
+void avoid(){
+
+};
+
+void servopulse(int servopin, int myangle) // the running angle of servo
+{
+  for (int i = 0; i < 20; i++)
+  {
+    pulsewidth = (myangle * 11) + 500;
+    digitalWrite(servopin, HIGH);
+    delayMicroseconds(pulsewidth);
+    digitalWrite(servopin, LOW);
+    delay(20 - pulsewidth / 1000);
+  }
+}
+
+void motorDriveRoutine()
+{
   readLFSsensors();
-  dump();
+  // dump();
   if (mode == FOLLOWING_LINE)
   {
     calculatePID();
     motorPIDcontrol();
     // checkPIDvalues();
     // dumpPID();
-  } else {
+  }
+  else
+  {
+    if (LFSensor_prev[0] == 1 && LFSensor[0] == 0) {
+      failStatus = diverted_left;
+      L_BLINK();
+    } else if(LFSensor_prev[2] == 1 && LFSensor[2] == 0) {
+      failStatus = diverted_right;
+      R_BLINK();
+    }
+    Serial.print("Fail status:");
+    Serial.println(failStatus);
     Stop();
   }
+  LFSensor_prev[0] = LFSensor[0];
+  LFSensor_prev[1] = LFSensor[1];
+  LFSensor_prev[2] = LFSensor[2];
 }
-
 
 void checkPIDvalues()
 {
   Serial.print("P:");
-  Serial.print(Kp*P);
+  Serial.print(Kp * P);
   Serial.print(",I:");
-  Serial.print(Ki*I);
+  Serial.print(Ki * I);
   Serial.print(",D:");
-  Serial.println(Kd*D);  
+  Serial.println(Kd * D);
 }
 
-void dumpPID(){
-  Serial.print (PIDvalue);
-  Serial.print (" ==> Left, Right:  ");
-  Serial.print (leftMotorSpeed);
-  Serial.print ("   ");
-  Serial.println (rightMotorSpeed);
+void dumpPID()
+{
+  Serial.print(PIDvalue);
+  Serial.print(" ==> Left, Right:  ");
+  Serial.print(leftMotorSpeed);
+  Serial.print("   ");
+  Serial.println(rightMotorSpeed);
 }
 
-void dump(){
+void dump()
+{
   Serial.print("l_val:");
   Serial.print(LFSensor[0]);
   Serial.print(",c_val:");
@@ -197,87 +256,6 @@ void readLFSsensors()
   }
 }
 
-void L_ON()
-{
-  analogWrite(L_LED, 100);
-  digitalWrite(R_LED, HIGH);
-}
-
-void L_ON_BRIGHT()
-{
-  analogWrite(L_LED, 255);
-  digitalWrite(R_LED, 0);
-}
-
-void R_ON_BRIGHT()
-{
-  digitalWrite(L_LED, LOW);
-  analogWrite(R_LED, 255);
-}
-
-void R_ON()
-{
-  digitalWrite(L_LED, LOW);
-  analogWrite(R_LED, 100);
-}
-
-void LR_ON()
-{
-  analogWrite(L_LED, 100);
-  analogWrite(R_LED, 100);
-}
-
-void LR_ON_BRIGHT()
-{
-  digitalWrite(L_LED, HIGH);
-  digitalWrite(R_LED, HIGH);
-}
-
-void LR_OFF()
-{
-  digitalWrite(L_LED, LOW);
-  digitalWrite(R_LED, LOW);
-}
-
-void tracking()
-{
-  l_val = digitalRead(sensor_l); // read the value of left line tracking sensor
-  c_val = digitalRead(sensor_c); // read the value of middle line tracking sensor
-  r_val = digitalRead(sensor_r); // read the value of right line tracking sensor
-  Serial.print("l_val:");
-  Serial.print(l_val);
-  Serial.print(",c_val:");
-  Serial.print(c_val);
-  Serial.print(",r_val:");
-  Serial.println(r_val);
-  if (c_val == 1) // if the state of middle one is 1, which means detecting black line
-
-  {
-    front(); // car goes forward
-    LR_ON();
-  }
-  else
-  {
-    if ((l_val == 1) && (r_val == 0)) // if only left line tracking sensor detects black trace
-
-    {
-      left(); // car turns left
-      L_ON();
-    }
-    else if ((l_val == 0) && (r_val == 1)) /// if only right line tracking sensor detects black trace
-
-    {
-      right(); // car turns right
-      R_ON();
-    }
-    else // if none of line tracking sensor detects black line
-    {
-      Stop(); // car stops
-      LR_OFF();
-    }
-  }
-}
-
 void calculatePID()
 {
   P = error;
@@ -287,10 +265,8 @@ void calculatePID()
   previousError = error;
 }
 
-
 void motorPIDcontrol()
 {
-
   leftMotorSpeed = iniMotorPower + PIDvalue;
   rightMotorSpeed = iniMotorPower * adj - PIDvalue;
   // The motor speed should not exceed the max PWM value
@@ -299,16 +275,19 @@ void motorPIDcontrol()
 
   motorWrite(left_ctrl, left_pwm, leftMotorSpeed);
   motorWrite(right_ctrl, right_pwm, rightMotorSpeed);
-
 }
 
-void motorWrite(int dir_pin, int speed_pin, int speed){
-  if (speed > 0){
+void motorWrite(int dir_pin, int speed_pin, int speed)
+{
+  if (speed > 0)
+  {
     digitalWrite(dir_pin, HIGH);
-  } else {
+  }
+  else
+  {
     digitalWrite(dir_pin, LOW);
   }
-    analogWrite(speed_pin, speed);
+  analogWrite(speed_pin, speed);
 }
 
 void back() // define the status of going forward
@@ -353,34 +332,45 @@ void Stop() // define the state of stop
   analogWrite(right_pwm, 0);
 }
 
-void init_color_sensor() {
-  if (tcs.begin()) {
+void init_color_sensor()
+{
+  if (tcs.begin())
+  {
     Serial.println("Found sensor");
-  } else {
+  }
+  else
+  {
     Serial.println("No TCS34725 found ... check your connections");
-    while (1); // halt!
+    while (1)
+      ; // halt!
   }
 }
 
-void generate_gamma_table() {
+void generate_gamma_table()
+{
   // thanks PhilB for this gamma table!
   // it helps convert RGB colors to what humans see
-  for (int i = 0; i < 256; i++) {
+  for (int i = 0; i < 256; i++)
+  {
     float x = i;
     x /= 255;
     x = pow(x, 2.5);
     x *= 255;
 
-    if (commonAnode) {
+    if (commonAnode)
+    {
       gammatable[i] = 255 - x;
-    } else {
+    }
+    else
+    {
       gammatable[i] = x;
     }
     //    Serial.println(gammatable[i]);
   }
 }
 
-void dump_values(float red, float green, float blue) {
+void dump_values(float red, float green, float blue)
+{
   Serial.print(gammatable[(int)red]);
   Serial.print(",");
   Serial.print(gammatable[(int)green]);
@@ -389,22 +379,30 @@ void dump_values(float red, float green, float blue) {
   Serial.print(": ");
 }
 
-void read_color_sensor(){
+void read_color_sensor()
+{
   float red, green, blue;
-  tcs.setInterrupt(false);  // turn on LED
+  tcs.setInterrupt(false); // turn on LED
   tcs.getRGB(&red, &green, &blue);
-  tcs.setInterrupt(true);  // turn off LED
+  tcs.setInterrupt(true); // turn off LED
 
-  if (gammatable[(int)red] < 215 && gammatable[(int)blue] > 240 && gammatable[(int)green] > 240) {
+  if (gammatable[(int)red] < 215 && gammatable[(int)blue] > 240 && gammatable[(int)green] > 240)
+  {
     colorStatus = enum_red;
     // Serial.println("red");
-  } else if (gammatable[(int)red] > 240 && gammatable[(int)blue] < 220 && gammatable[(int)green] > 230) {
+  }
+  else if (gammatable[(int)red] > 240 && gammatable[(int)blue] < 220 && gammatable[(int)green] > 230)
+  {
     colorStatus = enum_blue;
     // Serial.println("blue");
-  } else if (gammatable[(int)red] > 240 && gammatable[(int)blue] > 230 && gammatable[(int)green] < 230) {
+  }
+  else if (gammatable[(int)red] > 240 && gammatable[(int)blue] > 230 && gammatable[(int)green] < 230)
+  {
     colorStatus = enum_green;
     // Serial.println("green");
-  } else {
+  }
+  else
+  {
     colorStatus = enum_white;
     // Serial.println("white");
   }
