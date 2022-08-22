@@ -10,7 +10,7 @@ Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS3472
 void setup() {
   Serial.begin(9600);
   init_color_sensor();
-  init_color_leds();
+  init_color_leds();  
   generate_gamma_table();
 }
 
@@ -25,16 +25,17 @@ void loop() {
 
   emit_leds(red, green, blue);
 
-  if (gammatable[(int)red] < 210 && gammatable[(int)blue] > 240 && gammatable[(int)green] > 240) {
+  if (gammatable[(int)red] < 215 && gammatable[(int)blue] > 240 && gammatable[(int)green] > 240) {
     Serial.println("red");
-  } else if (gammatable[(int)red] > 240 && gammatable[(int)blue] < 180 && gammatable[(int)green] > 240) {
+  } else if (gammatable[(int)red] > 240 && gammatable[(int)blue] < 220 && gammatable[(int)green] > 230) {
     Serial.println("blue");
-  } else if (gammatable[(int)red] > 240 && gammatable[(int)blue] > 240 && gammatable[(int)green] < 210) {
+  } else if (gammatable[(int)red] > 240 && gammatable[(int)blue] > 230 && gammatable[(int)green] < 230) {
     Serial.println("green");
   } else {
     Serial.println("white");
   }
 }
+
 
 void init_color_sensor() {
   if (tcs.begin()) {
