@@ -15,8 +15,8 @@ int left_ctrl = 2;       // define direction control pin of A motor
 int left_pwm = 9;        // define PWM control pin of A motor
 int right_ctrl = 4;      // define direction control pin of B motor
 int right_pwm = 5;       // define PWM control pin of B motor
-int sensor_l = A4;       // define the pin of left line tracking sensor
-int sensor_c = A5;       // define the pin of middle line tracking sensor
+int sensor_l = A1;       // define the pin of left line tracking sensor
+int sensor_c = A2;       // define the pin of middle line tracking sensor
 int sensor_r = A3;       // define the pin of right line tracking sensor
 int l_val, c_val, r_val; // define these variables
 
