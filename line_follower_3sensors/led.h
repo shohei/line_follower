@@ -3,7 +3,6 @@
 
 #define L_LED 6  // Timer 0A
 #define R_LED 10 // Timer 1B
-#define PWM_VAL 100
 
 void L_ON();
 void L_ON_BRIGHT();
