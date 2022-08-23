@@ -7,15 +7,9 @@
 #include <Servo.h>
 #include <Wire.h>
 #include <MsTimer2.h>
-#include "Adafruit_TCS34725.h"
 
 #include "led.h"
-
-/* Color sensor settings */
-#define commonAnode true
-byte gammatable[256];
-Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
-/* End of color sensor settings */
+#include "color_sensor.h"
 
 int left_ctrl = 2;  // define direction control pin of A motor
 int left_pwm = 9;   // define PWM control pin of A motor: Timer 1A
@@ -56,15 +50,6 @@ const int adj = 1;
 int leftMotorSpeed = iniMotorPower;
 int rightMotorSpeed = iniMotorPower;
 
-enum color_enum
-{
-  enum_red,
-  enum_blue,
-  enum_green,
-  enum_white
-};
-color_enum colorStatus = enum_white;
-
 enum operation_enum
 {
   stopped,
@@ -102,8 +87,8 @@ void setup()
   pinMode(L_LED, OUTPUT);
   pinMode(R_LED, OUTPUT);
 
-  init_color_sensor();
-  generate_gamma_table();
+  Color::init_color_sensor();
+  Color::generate_gamma_table();
 
   servopulse(servopin, 90); // the angle of servo is 90 degree
   delay(300);
@@ -114,7 +99,7 @@ void setup()
 
 void loop()
 {
-  read_color_sensor();
+  Color::read_color_sensor();
   delay(60);
 
   if (failStatus==diverted_left) {
@@ -256,7 +241,7 @@ void dump()
   Serial.print(",r_val:");
   Serial.print(LFSensor[2]);
   Serial.print(",color:");
-  Serial.println(colorStatus);
+  Serial.println(Color::colorStatus);
 }
 
 void readLFSsensors()
@@ -377,80 +362,4 @@ void Stop() // define the state of stop
 {
   analogWrite(left_pwm, 0);
   analogWrite(right_pwm, 0);
-}
-
-void init_color_sensor()
-{
-  if (tcs.begin())
-  {
-    Serial.println("Found sensor");
-  }
-  else
-  {
-    Serial.println("No TCS34725 found ... check your connections");
-    while (1)
-      ; // halt!
-  }
-}
-
-void generate_gamma_table()
-{
-  // thanks PhilB for this gamma table!
-  // it helps convert RGB colors to what humans see
-  for (int i = 0; i < 256; i++)
-  {
-    float x = i;
-    x /= 255;
-    x = pow(x, 2.5);
-    x *= 255;
-
-    if (commonAnode)
-    {
-      gammatable[i] = 255 - x;
-    }
-    else
-    {
-      gammatable[i] = x;
-    }
-    //    Serial.println(gammatable[i]);
-  }
-}
-
-void dump_values(float red, float green, float blue)
-{
-  Serial.print(gammatable[(int)red]);
-  Serial.print(",");
-  Serial.print(gammatable[(int)green]);
-  Serial.print(",");
-  Serial.print(gammatable[(int)blue]);
-  Serial.print(": ");
-}
-
-void read_color_sensor()
-{
-  float red, green, blue;
-  tcs.setInterrupt(false); // turn on LED
-  tcs.getRGB(&red, &green, &blue);
-  tcs.setInterrupt(true); // turn off LED
-
-  if (gammatable[(int)red] < 215 && gammatable[(int)blue] > 240 && gammatable[(int)green] > 240)
-  {
-    colorStatus = enum_red;
-    // Serial.println("red");
-  }
-  else if (gammatable[(int)red] > 240 && gammatable[(int)blue] < 220 && gammatable[(int)green] > 230)
-  {
-    colorStatus = enum_blue;
-    // Serial.println("blue");
-  }
-  else if (gammatable[(int)red] > 240 && gammatable[(int)blue] > 230 && gammatable[(int)green] < 230)
-  {
-    colorStatus = enum_green;
-    // Serial.println("green");
-  }
-  else
-  {
-    colorStatus = enum_white;
-    // Serial.println("white");
-  }
 }
