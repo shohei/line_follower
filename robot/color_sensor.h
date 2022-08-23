@@ -15,8 +15,8 @@ public:
         enum_green,
         enum_white
     };
-    static color_enum colorStatus;
-    static byte gammatable[256];
+    // static color_enum colorStatus;
+    // static byte gammatable[256];
     static void init_color_sensor();
     static void generate_gamma_table();
     static void dump_color_values(float red, float green, float blue);
