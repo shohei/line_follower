@@ -71,7 +71,7 @@ enum operation_enum
   following_line,
   no_line,
   recovery,
-  avoidance
+  avoidance,
 };
 operation_enum operationMode = stopped;
 
@@ -79,7 +79,7 @@ enum fail_mode_enum
 {
   no_failure,
   diverted_left,
-  diverted_right
+  diverted_right,
 };
 fail_mode_enum failStatus = no_failure;
 
@@ -131,11 +131,10 @@ void loop()
       delay(100);
       failStatus = no_failure;
       operationMode = stopped;
-  }
+  } 
 
   if (operationMode == avoidance) {
       avoidRightPath();
-      operationMode = following_line;
   }
 
   distance1 = sr04.Distance();             // obtain the value detected by ultrasonic sensor
@@ -146,6 +145,8 @@ void loop()
 }
 
 void avoidRightPath(){
+      //TODO:
+      //復帰を検知したら中止してLine following動作をさせたい
       int turn_duration = 520;
       int straight_duration = 2000;
       //turn right
@@ -207,7 +208,7 @@ void motorDriveRoutine()
    //do nothing 
   } else if (operationMode == avoidance) {
     //do nothing
-  }
+  } 
   else if (operationMode == no_line || operationMode == stopped)
   {
     if (LFSensor_prev[0]!=LFSensor[0] || LFSensor_prev[1]!=LFSensor[1] || LFSensor_prev[2]!=LFSensor[2]) {
