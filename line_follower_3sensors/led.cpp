@@ -48,9 +48,9 @@ void L_BLINK()
   LR_OFF();
   for (int i=0;i<10;i++){
     digitalWrite(L_LED, HIGH);
-    delay(200);
+    delay(20);
     digitalWrite(L_LED, LOW);
-    delay(200);
+    delay(20);
   }
 }
 
@@ -59,8 +59,8 @@ void R_BLINK()
   LR_OFF();
   for (int i=0;i<10;i++){
     digitalWrite(R_LED, HIGH);
-    delay(200);
+    delay(20);
     digitalWrite(R_LED, LOW);
-    delay(200);
+    delay(20);
   }
 }

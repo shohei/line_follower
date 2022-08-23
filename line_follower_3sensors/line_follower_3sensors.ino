@@ -17,8 +17,6 @@ byte gammatable[256];
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
 /* End of color sensor settings */
 
-// #define DEBUG
-
 int left_ctrl = 2;  // define direction control pin of A motor
 int left_pwm = 9;   // define PWM control pin of A motor: Timer 1A
 int right_ctrl = 4; // define direction control pin of B motor
@@ -89,6 +87,8 @@ enum fail_mode_enum
 };
 fail_mode_enum failStatus = no_failure;
 
+#define PWM_VAL 100
+
 void setup()
 {
   Serial.begin(9600);          // start serial monitor and set baud rate to 9600
@@ -121,6 +121,24 @@ void loop()
   read_color_sensor();
   delay(60);
 
+  if (failStatus==diverted_left) {
+      Serial.println("diverted_left");
+      L_BLINK();
+      motorWrite(left_ctrl, left_pwm, -100);
+      motorWrite(right_ctrl, right_pwm, 100);
+      delay(200);
+      failStatus = no_failure;
+      mode = STOPPED;
+  } else if (failStatus==diverted_right) {
+      Serial.println("diverted_right");
+      R_BLINK();
+      motorWrite(left_ctrl, left_pwm, 100);
+      motorWrite(right_ctrl, right_pwm, -100);
+      delay(200);
+      failStatus = no_failure;
+      mode = STOPPED;
+  }
+
   distance1 = sr04.Distance();             // obtain the value detected by ultrasonic sensor
   if ((distance1 < 10) && (distance1 > 0)) // if the distance is greater than 0 and less than 10
   {
@@ -144,6 +162,7 @@ void servopulse(int servopin, int myangle) // the running angle of servo
   }
 }
 
+char buff[30];
 void motorDriveRoutine()
 {
   readLFSsensors();
@@ -154,19 +173,27 @@ void motorDriveRoutine()
     motorPIDcontrol();
     // checkPIDvalues();
     // dumpPID();
+  } else if (mode == RECOVER_MODE) {
+   //do nothing 
   }
-  else
+  else if (mode == NO_LINE || mode == STOPPED )
   {
-    if (LFSensor_prev[0] == 1 && LFSensor[0] == 0) {
-      failStatus = diverted_left;
-      L_BLINK();
-    } else if(LFSensor_prev[2] == 1 && LFSensor[2] == 0) {
-      failStatus = diverted_right;
-      R_BLINK();
+    if (LFSensor_prev[0]!=LFSensor[0] || LFSensor_prev[1]!=LFSensor[1] || LFSensor_prev[2]!=LFSensor[2]) {
+      Serial.println("*********");
+      sprintf(buff, "S1': %d, S2': %d, S3': %d", LFSensor_prev[0], LFSensor_prev[1], LFSensor_prev[2]);
+      Serial.println(buff);
+      sprintf(buff, "S1 : %d, S2 : %d, S3 : %d", LFSensor[0], LFSensor[1], LFSensor[2]);
+      Serial.println(buff);
+      Serial.println("*********");
+
+      if (LFSensor_prev[0]==1 && LFSensor[0] == 0) {
+        failStatus = diverted_left;
+      } else if (LFSensor_prev[2]==1 && LFSensor[2] == 0) {
+        failStatus = diverted_right;
+      }
     }
-    Serial.print("Fail status:");
-    Serial.println(failStatus);
     Stop();
+    mode = RECOVER_MODE;
   }
   LFSensor_prev[0] = LFSensor[0];
   LFSensor_prev[1] = LFSensor[1];
@@ -250,7 +277,9 @@ void readLFSsensors()
   }
   else if ((LFSensor[0] == 0) && (LFSensor[1] == 0) && (LFSensor[2] == 0))
   {
-    mode = NO_LINE;
+    if (mode != RECOVER_MODE) {
+      mode = NO_LINE;
+    }
     error = 0;
     LR_OFF();
   }
@@ -292,39 +321,31 @@ void motorWrite(int dir_pin, int speed_pin, int speed)
 
 void back() // define the status of going forward
 {
-#ifndef DEBUG
   digitalWrite(left_ctrl, LOW);
   analogWrite(left_pwm, PWM_VAL);
   digitalWrite(right_ctrl, LOW);
   analogWrite(right_pwm, PWM_VAL);
-#endif
 }
 void front() // define the state of going back
 {
-#ifndef DEBUG
   digitalWrite(left_ctrl, HIGH);
   analogWrite(left_pwm, PWM_VAL);
   digitalWrite(right_ctrl, HIGH);
   analogWrite(right_pwm, PWM_VAL);
-#endif
 }
 void left() // define the left-turning state
 {
-#ifndef DEBUG
   digitalWrite(left_ctrl, LOW);
   analogWrite(left_pwm, PWM_VAL);
   digitalWrite(right_ctrl, HIGH);
   analogWrite(right_pwm, PWM_VAL);
-#endif
 }
 void right() // define the right-turning state
 {
-#ifndef DEBUG
   digitalWrite(left_ctrl, HIGH);
   analogWrite(left_pwm, PWM_VAL);
   digitalWrite(right_ctrl, LOW);
   analogWrite(right_pwm, PWM_VAL);
-#endif
 }
 void Stop() // define the state of stop
 {
