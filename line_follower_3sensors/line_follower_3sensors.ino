@@ -133,17 +133,50 @@ void loop()
       operationMode = stopped;
   }
 
+  if (operationMode == avoidance) {
+      avoidRightPath();
+      operationMode = following_line;
+  }
+
   distance1 = sr04.Distance();             // obtain the value detected by ultrasonic sensor
-  if ((distance1 < 10) && (distance1 > 0)) // if the distance is greater than 0 and less than 10
+  if ((distance1 < 15) && (distance1 > 0)) // if the distance is greater than 0 and less than 10
   {
     operationMode = avoidance;
-    avoid();
   }
 }
 
-void avoid(){
-
-};
+void avoidRightPath(){
+      int turn_duration = 520;
+      int straight_duration = 2000;
+      //turn right
+      motorWrite(left_ctrl, left_pwm, 200);
+      motorWrite(right_ctrl, right_pwm, -200);
+      delay(turn_duration);
+      //straight
+      motorWrite(left_ctrl, left_pwm, 100);
+      motorWrite(right_ctrl, right_pwm, 100);
+      delay(straight_duration);
+      //turn left
+      motorWrite(left_ctrl, left_pwm, -200);
+      motorWrite(right_ctrl, right_pwm, 200);
+      delay(turn_duration);
+      //straight
+      motorWrite(left_ctrl, left_pwm, 100);
+      motorWrite(right_ctrl, right_pwm, 100);
+      delay(straight_duration);
+      //turn left 
+      motorWrite(left_ctrl, left_pwm, -200);
+      motorWrite(right_ctrl, right_pwm, 200);
+      delay(turn_duration);
+      //straight
+      motorWrite(left_ctrl, left_pwm, 100);
+      motorWrite(right_ctrl, right_pwm, 100);
+      delay(straight_duration);
+      //turn right 
+      motorWrite(left_ctrl, left_pwm, 200);
+      motorWrite(right_ctrl, right_pwm, -200);
+      delay(turn_duration);
+}
 
 void servopulse(int servopin, int myangle) // the running angle of servo
 {
@@ -160,7 +193,9 @@ void servopulse(int servopin, int myangle) // the running angle of servo
 char buff[30];
 void motorDriveRoutine()
 {
-  readLFSsensors();
+  if (operationMode != avoidance) {
+    readLFSsensors();
+  }
   // dump();
   if (operationMode == following_line)
   {
@@ -170,6 +205,8 @@ void motorDriveRoutine()
     // dumpPID();
   } else if (operationMode == recovery) {
    //do nothing 
+  } else if (operationMode == avoidance) {
+    //do nothing
   }
   else if (operationMode == no_line || operationMode == stopped)
   {
