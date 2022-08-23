@@ -70,7 +70,8 @@ enum operation_enum
   stopped,
   following_line,
   no_line,
-  recovery
+  recovery,
+  avoidance
 };
 operation_enum operationMode = stopped;
 
@@ -78,7 +79,7 @@ enum fail_mode_enum
 {
   no_failure,
   diverted_left,
-  diverted_right,
+  diverted_right
 };
 fail_mode_enum failStatus = no_failure;
 
@@ -120,14 +121,14 @@ void loop()
       L_BLINK();
       motorWrite(left_ctrl, left_pwm, -100);
       motorWrite(right_ctrl, right_pwm, 100);
-      delay(200);
+      delay(100);
       failStatus = no_failure;
       operationMode = stopped;
   } else if (failStatus==diverted_right) {
       R_BLINK();
       motorWrite(left_ctrl, left_pwm, 100);
       motorWrite(right_ctrl, right_pwm, -100);
-      delay(200);
+      delay(100);
       failStatus = no_failure;
       operationMode = stopped;
   }
@@ -135,6 +136,7 @@ void loop()
   distance1 = sr04.Distance();             // obtain the value detected by ultrasonic sensor
   if ((distance1 < 10) && (distance1 > 0)) // if the distance is greater than 0 and less than 10
   {
+    operationMode = avoidance;
     avoid();
   }
 }
@@ -172,13 +174,8 @@ void motorDriveRoutine()
   else if (operationMode == no_line || operationMode == stopped)
   {
     if (LFSensor_prev[0]!=LFSensor[0] || LFSensor_prev[1]!=LFSensor[1] || LFSensor_prev[2]!=LFSensor[2]) {
-      Serial.println("*********");
-      sprintf(buff, "S1': %d, S2': %d, S3': %d", LFSensor_prev[0], LFSensor_prev[1], LFSensor_prev[2]);
-      Serial.println(buff);
-      sprintf(buff, "S1 : %d, S2 : %d, S3 : %d", LFSensor[0], LFSensor[1], LFSensor[2]);
-      Serial.println(buff);
-      Serial.println("*********");
-
+      //The diversion from the line is detected for the first time 
+      //Trigger recovery mode 
       if (LFSensor_prev[0]==1 && LFSensor[0] == 0) {
         failStatus = diverted_left;
       } else if (LFSensor_prev[2]==1 && LFSensor[2] == 0) {
