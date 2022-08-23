@@ -41,12 +41,6 @@ int val;
 int l_val, c_val, r_val; // define these variables
 int LFSensor[3] = {0, 0, 0};
 int LFSensor_prev[3] = {0, 0, 0};
-int mode = 0;
-
-#define STOPPED 0
-#define FOLLOWING_LINE 1
-#define NO_LINE 2
-#define RECOVER_MODE 3
 
 float Kp = 30;
 float Ki = 0.7;
@@ -73,11 +67,12 @@ color_enum colorStatus = enum_white;
 
 enum operation_enum
 {
-  following,
-  obstacle_avoidance,
-  perpendicular
+  stopped,
+  following_line,
+  no_line,
+  recovery
 };
-operation_enum operationStatus = following;
+operation_enum operationMode = stopped;
 
 enum fail_mode_enum
 {
@@ -122,21 +117,19 @@ void loop()
   delay(60);
 
   if (failStatus==diverted_left) {
-      Serial.println("diverted_left");
       L_BLINK();
       motorWrite(left_ctrl, left_pwm, -100);
       motorWrite(right_ctrl, right_pwm, 100);
       delay(200);
       failStatus = no_failure;
-      mode = STOPPED;
+      operationMode = stopped;
   } else if (failStatus==diverted_right) {
-      Serial.println("diverted_right");
       R_BLINK();
       motorWrite(left_ctrl, left_pwm, 100);
       motorWrite(right_ctrl, right_pwm, -100);
       delay(200);
       failStatus = no_failure;
-      mode = STOPPED;
+      operationMode = stopped;
   }
 
   distance1 = sr04.Distance();             // obtain the value detected by ultrasonic sensor
@@ -167,16 +160,16 @@ void motorDriveRoutine()
 {
   readLFSsensors();
   // dump();
-  if (mode == FOLLOWING_LINE)
+  if (operationMode == following_line)
   {
     calculatePID();
     motorPIDcontrol();
     // checkPIDvalues();
     // dumpPID();
-  } else if (mode == RECOVER_MODE) {
+  } else if (operationMode == recovery) {
    //do nothing 
   }
-  else if (mode == NO_LINE || mode == STOPPED )
+  else if (operationMode == no_line || operationMode == stopped)
   {
     if (LFSensor_prev[0]!=LFSensor[0] || LFSensor_prev[1]!=LFSensor[1] || LFSensor_prev[2]!=LFSensor[2]) {
       Serial.println("*********");
@@ -193,7 +186,7 @@ void motorDriveRoutine()
       }
     }
     Stop();
-    mode = RECOVER_MODE;
+    operationMode = recovery;
   }
   LFSensor_prev[0] = LFSensor[0];
   LFSensor_prev[1] = LFSensor[1];
@@ -239,46 +232,44 @@ void readLFSsensors()
 
   if ((LFSensor[0] == 0) && (LFSensor[1] == 0) && (LFSensor[2] == 1))
   {
-    mode = FOLLOWING_LINE;
+    operationMode = following_line;
     error = 2;
     R_ON_BRIGHT();
   }
   else if ((LFSensor[0] == 0) && (LFSensor[1] == 1) && (LFSensor[2] == 1))
   {
-    mode = FOLLOWING_LINE;
+    operationMode = following_line;
     error = 1;
     R_ON();
   }
   else if ((LFSensor[0] == 0) && (LFSensor[1] == 1) && (LFSensor[2] == 0))
   {
-    mode = FOLLOWING_LINE;
+    operationMode = following_line;
     error = 0;
     LR_ON();
   }
   else if ((LFSensor[0] == 1) && (LFSensor[1] == 1) && (LFSensor[2] == 0))
   {
-    mode = FOLLOWING_LINE;
+    operationMode = following_line;
     error = -1;
     L_ON();
   }
   else if ((LFSensor[0] == 1) && (LFSensor[1] == 0) && (LFSensor[2] == 0))
   {
-    mode = FOLLOWING_LINE;
+    operationMode = following_line;
     error = -2;
     L_ON_BRIGHT();
   }
   else if ((LFSensor[0] == 1) && (LFSensor[1] == 1) && (LFSensor[2] == 1))
   {
-    mode = FOLLOWING_LINE;
-    // mode = STOPPED;
+    operationMode = following_line;
     error = 0;
     LR_ON_BRIGHT();
-    // LR_OFF();
   }
   else if ((LFSensor[0] == 0) && (LFSensor[1] == 0) && (LFSensor[2] == 0))
   {
-    if (mode != RECOVER_MODE) {
-      mode = NO_LINE;
+    if (operationMode != recovery) {
+      operationMode = no_line;
     }
     error = 0;
     LR_OFF();
