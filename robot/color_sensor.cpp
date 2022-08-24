@@ -27,13 +27,15 @@ static void generate_gamma_table()
     x = pow(x, 2.5);
     x *= 255;
 
+    Preference *state = Preference::getInstance(); 
+
     if (commonAnode)
     {
-      Color::gammatable[i] = 255 - x;
+      state->gammatable[i] = 255 - x;
     }
     else
     {
-      Color::gammatable[i] = x;
+      state->gammatable[i] = x;
     }
     //    Serial.println(gammatable[i]);
   }
@@ -50,30 +52,32 @@ static void dump_color_values(float red, float green, float blue)
 }
 
 static void read_color_sensor()
-{
+a{
   float red, green, blue;
   tcs.setInterrupt(false); // turn on LED
   tcs.getRGB(&red, &green, &blue);
   tcs.setInterrupt(true); // turn off LED
 
-  if (Color::gammatable[(int)red] < 215 && Color::gammatable[(int)blue] > 240 && Color::gammatable[(int)green] > 240)
+  Preference *state = Preference::getInstance(); 
+
+  if (state->gammatable[(int)red] < 215 && state->gammatable[(int)blue] > 240 && state->gammatable[(int)green] > 240)
   {
-    Color::colorStatus = Color::enum_red;
+    state->colorStatus = Color::enum_red;
     // Serial.println("red");
   }
-  else if (Color::gammatable[(int)red] > 240 && Color::gammatable[(int)blue] < 220 && Color::gammatable[(int)green] > 230)
+  else if (state->gammatable[(int)red] > 240 && state->gammatable[(int)blue] < 220 && state->gammatable[(int)green] > 230)
   {
-    Color::colorStatus = Color::enum_blue;
+    state->colorStatus = Color::enum_blue;
     // Serial.println("blue");
   }
-  else if (Color::gammatable[(int)red] > 240 && Color::gammatable[(int)blue] > 230 && Color::gammatable[(int)green] < 230)
+  else if (state->gammatable[(int)red] > 240 && state->gammatable[(int)blue] > 230 && state->gammatable[(int)green] < 230)
   {
-    Color::colorStatus = Color::enum_green;
+    state->colorStatus = Color::enum_green;
     // Serial.println("green");
   }
   else
   {
-    Color::colorStatus = Color::enum_white;
+    state->colorStatus = Color::enum_white;
     // Serial.println("white");
   }
 }
