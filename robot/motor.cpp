@@ -25,7 +25,7 @@ void Motor::calculatePID()
   Motor::previousError = Motor::error;
 }
 
-void Motor::motorPIDcontrol()
+void Motor::executePIDcontrol()
 {
   Motor::leftMotorSpeed = INITIAL_MOTOR_POWER + Motor::PIDvalue;
   Motor::rightMotorSpeed = INITIAL_MOTOR_POWER * ADJ - Motor::PIDvalue;
@@ -33,11 +33,11 @@ void Motor::motorPIDcontrol()
   Motor::leftMotorSpeed = constrain(Motor::leftMotorSpeed, -255, 255);
   Motor::Motor::rightMotorSpeed = constrain(Motor::Motor::rightMotorSpeed, -255, 255);
 
-  motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, Motor::leftMotorSpeed);
-  motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, Motor::Motor::rightMotorSpeed);
+  Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, Motor::leftMotorSpeed);
+  Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, Motor::Motor::rightMotorSpeed);
 }
 
-void Motor::motorWrite(int dir_pin, int speed_pin, int speed)
+void Motor::write(int dir_pin, int speed_pin, int speed)
 {
   if (speed > 0)
   {
@@ -51,7 +51,7 @@ void Motor::motorWrite(int dir_pin, int speed_pin, int speed)
 }
 
 char buff[30];
-void Motor::motorDriveRoutine()
+void Motor::driveRoutine()
 {
   if (Motor::mode != OpMode::avoidance) {
     LineSensor::read();
@@ -60,7 +60,7 @@ void Motor::motorDriveRoutine()
   if (Motor::mode == OpMode::following_line)
   {
     Motor::calculatePID();
-    Motor::motorPIDcontrol();
+    Motor::executePIDcontrol();
     // Motor::checkPIDvalues();
     // Motor::dumpPID();
   } else if (Motor::mode == OpMode::recovery) {

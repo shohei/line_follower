@@ -25,9 +25,9 @@ public:
     static void init();
     static void calculatePID();
     static void dumpPID();
-    static void motorPIDcontrol();
-    static void motorWrite(int dir_pin, int speed_pin, int speed);
-    static void motorDriveRoutine();
+    static void executePIDcontrol();
+    static void write(int dir_pin, int speed_pin, int speed);
+    static void driveRoutine();
     static void checkPIDValues();
     static void back();
     static void front();

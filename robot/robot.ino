@@ -39,7 +39,7 @@ void setup()
   servopulse(servopin, 90); // the angle of servo is 90 degree
   delay(300);
 
-  MsTimer2::set(20, Motor::motorDriveRoutine); // 500ms period
+  MsTimer2::set(20, Motor::driveRoutine); // 500ms period
   MsTimer2::start();
 }
 
@@ -50,15 +50,15 @@ void loop()
 
   if (Motor::failStatus == failMode::diverted_left) {
       Led::L_BLINK();
-      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, -100);
-      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, -100);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
       delay(100);
       Motor::failStatus = failMode::no_failure;
       Motor::mode = OpMode::stopped;
   } else if (Motor::failStatus == failMode::diverted_right) {
       Led::R_BLINK();
-      Motor::Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
-      Motor::Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -100);
+      Motor::Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -100);
       delay(100);
       Motor::failStatus = failMode::no_failure;
       Motor::mode = OpMode::stopped;
@@ -81,32 +81,32 @@ void avoidRightPath(){
       int turn_duration = 520;
       int straight_duration = 2000;
       //turn right
-      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, 200);
-      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -200);
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 200);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -200);
       delay(turn_duration);
       //straight
-      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
-      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
       delay(straight_duration);
       //turn left
-      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, -200);
-      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 200);
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, -200);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 200);
       delay(turn_duration);
       //straight
-      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
-      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
       delay(straight_duration);
       //turn left 
-      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, -200);
-      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 200);
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, -200);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 200);
       delay(turn_duration);
       //straight
-      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
-      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
       delay(straight_duration);
       //turn right 
-      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, 200);
-      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -200);
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 200);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -200);
       delay(turn_duration);
 }
 
