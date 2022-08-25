@@ -18,16 +18,17 @@
 
 #define PWM_VAL 100
 
-class Preference 
+class Preference
 {
   private:
     Preference(){};
     virtual ~Preference();
     static Preference *state;
-  public:	
+  public:
     static Preference* getInstance(void){
       return state;
     };
 };
 
 #endif
+

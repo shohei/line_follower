@@ -50,7 +50,6 @@ void Motor::write(int dir_pin, int speed_pin, int speed)
   analogWrite(speed_pin, speed);
 }
 
-char buff[30];
 void Motor::driveRoutine()
 {
   if (Motor::mode != OpMode::avoidance) {
@@ -88,7 +87,6 @@ void Motor::driveRoutine()
   LineSensor::prev[1] = LineSensor::cur[1];
   LineSensor::prev[2] = LineSensor::cur[2];
 }
-
 
 void checkPIDvalues()
 {
