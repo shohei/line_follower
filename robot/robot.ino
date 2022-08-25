@@ -87,8 +87,8 @@ void setup()
   pinMode(L_LED, OUTPUT);
   pinMode(R_LED, OUTPUT);
 
-  Color::init_color_sensor();
-  Color::generate_gamma_table();
+  ColorSensor::init();
+  ColorSensor::generate_gamma_table();
 
   servopulse(servopin, 90); // the angle of servo is 90 degree
   delay(300);
@@ -99,7 +99,7 @@ void setup()
 
 void loop()
 {
-  Color::read_color_sensor();
+  ColorSensor::read();
   delay(60);
 
   if (failStatus==diverted_left) {
@@ -241,7 +241,7 @@ void dump()
   Serial.print(",r_val:");
   Serial.print(LFSensor[2]);
   Serial.print(",color:");
-  Serial.println(Color::colorStatus);
+  Serial.println((int)ColorSensor::colorStatus);
 }
 
 void readLFSsensors()

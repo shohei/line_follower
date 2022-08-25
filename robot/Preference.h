@@ -13,8 +13,6 @@ class Preference
     static Preference* getInstance(void){
       return state;
     };
-    color_enum colorStatus;
-    byte gammatable[256];
 };
 
 #endif

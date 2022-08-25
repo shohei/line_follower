@@ -2,7 +2,7 @@
 #include <Arduino.h>
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
 
-static void init_color_sensor()
+void ColorSensor::init()
 {
   if (tcs.begin())
   {
@@ -16,7 +16,7 @@ static void init_color_sensor()
   }
 }
 
-static void generate_gamma_table()
+void ColorSensor::generate_gamma_table()
 {
   // thanks PhilB for this gamma table!
   // it helps convert RGB colors to what humans see
@@ -27,57 +27,55 @@ static void generate_gamma_table()
     x = pow(x, 2.5);
     x *= 255;
 
-    Preference *state = Preference::getInstance(); 
+    // Preference *state = Preference::getInstance(); 
 
     if (commonAnode)
     {
-      state->gammatable[i] = 255 - x;
+      ColorSensor::gammatable[i] = 255 - x;
     }
     else
     {
-      state->gammatable[i] = x;
+      ColorSensor::gammatable[i] = x;
     }
     //    Serial.println(gammatable[i]);
   }
 }
 
-static void dump_color_values(float red, float green, float blue)
+void ColorSensor::dump(float red, float green, float blue)
 {
-  Serial.print(Color::gammatable[(int)red]);
+  Serial.print(ColorSensor::gammatable[(int)red]);
   Serial.print(",");
-  Serial.print(Color::gammatable[(int)green]);
+  Serial.print(ColorSensor::gammatable[(int)green]);
   Serial.print(",");
-  Serial.print(Color::gammatable[(int)blue]);
+  Serial.print(ColorSensor::gammatable[(int)blue]);
   Serial.print(": ");
 }
 
-static void read_color_sensor()
-a{
+void ColorSensor::read()
+{
   float red, green, blue;
   tcs.setInterrupt(false); // turn on LED
   tcs.getRGB(&red, &green, &blue);
   tcs.setInterrupt(true); // turn off LED
 
-  Preference *state = Preference::getInstance(); 
-
-  if (state->gammatable[(int)red] < 215 && state->gammatable[(int)blue] > 240 && state->gammatable[(int)green] > 240)
+  if (ColorSensor::gammatable[(int)red] < 215 && ColorSensor::gammatable[(int)blue] > 240 && ColorSensor::gammatable[(int)green] > 240)
   {
-    state->colorStatus = Color::enum_red;
+    ColorSensor::colorStatus = Color::red;
     // Serial.println("red");
   }
-  else if (state->gammatable[(int)red] > 240 && state->gammatable[(int)blue] < 220 && state->gammatable[(int)green] > 230)
+  else if (ColorSensor::gammatable[(int)red] > 240 && ColorSensor::gammatable[(int)blue] < 220 && ColorSensor::gammatable[(int)green] > 230)
   {
-    state->colorStatus = Color::enum_blue;
+    ColorSensor::colorStatus = Color::blue;
     // Serial.println("blue");
   }
-  else if (state->gammatable[(int)red] > 240 && state->gammatable[(int)blue] > 230 && state->gammatable[(int)green] < 230)
+  else if (ColorSensor::gammatable[(int)red] > 240 && ColorSensor::gammatable[(int)blue] > 230 && ColorSensor::gammatable[(int)green] < 230)
   {
-    state->colorStatus = Color::enum_green;
+    ColorSensor::colorStatus = Color::green;
     // Serial.println("green");
   }
   else
   {
-    state->colorStatus = Color::enum_white;
+    ColorSensor::colorStatus = Color::white;
     // Serial.println("white");
   }
 }
