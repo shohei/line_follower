@@ -30,11 +30,9 @@ void setup()
   Serial.begin(9600);          // start serial monitor and set baud rate to 9600
 
   LineSensor::init();
-
   Motor::init();
   Led::init();
   ColorSensor::init();
-  ColorSensor::generate_gamma_table();
 
   servopulse(servopin, 90); // the angle of servo is 90 degree
   delay(300);

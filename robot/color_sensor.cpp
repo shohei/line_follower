@@ -14,6 +14,7 @@ void ColorSensor::init()
     while (1)
       ; // halt!
   }
+  ColorSensor::generate_gamma_table();
 }
 
 void ColorSensor::generate_gamma_table()
