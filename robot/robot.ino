@@ -46,7 +46,7 @@ void setup()
 void loop()
 {
   ColorSensor::read();
-  delay(60);
+  delay(60);// This delay is requried for the color sensor
 
   if (Motor::failStatus == failMode::diverted_left) {
       Led::L_BLINK();
