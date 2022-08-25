@@ -4,14 +4,18 @@
 #define L_LED 6  // Timer 0A
 #define R_LED 10 // Timer 1B
 
-void L_ON();
-void L_ON_BRIGHT();
-void R_ON();
-void R_ON_BRIGHT();
-void LR_ON();
-void LR_ON_BRIGHT();
-void LR_OFF();
-void L_BLINK();
-void R_BLINK();
+class Led {
+    public:
+    static void init();
+    static void L_ON();
+    static void L_ON_BRIGHT();
+    static void R_ON();
+    static void R_ON_BRIGHT();
+    static void LR_ON();
+    static void LR_ON_BRIGHT();
+    static void LR_OFF();
+    static void L_BLINK();
+    static void R_BLINK();
+};
 
 #endif

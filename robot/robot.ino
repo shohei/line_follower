@@ -1,23 +1,13 @@
-/*
- keyestudio smart turtle robot
- lesson 10
- Thacking turtle
- http://www.keyestudio.com
-*/
 #include <Servo.h>
 #include <Wire.h>
 #include <MsTimer2.h>
 
 #include "led.h"
 #include "color_sensor.h"
-
-int left_ctrl = 2;  // define direction control pin of A motor
-int left_pwm = 9;   // define PWM control pin of A motor: Timer 1A
-int right_ctrl = 4; // define direction control pin of B motor
-int right_pwm = 5;  // define PWM control pin of B motor: Timer 0B
-int sensor_l = A1;  // define the pin of left line tracking sensor
-int sensor_c = A2;  // define the pin of middle line tracking sensor
-int sensor_r = A3;  // define the pin of right line tracking sensor
+#include "motor.h"
+#include "line_sensor.h"
+#include "preference.h"
+#include "ultrasonic.h"
 
 /* Ultrasonic sensor settings */
 #include "SR04.h"   //define the library of ultrasonic sensor
@@ -33,67 +23,23 @@ int val;
 
 /* Line sensor settings */
 int l_val, c_val, r_val; // define these variables
-int LFSensor[3] = {0, 0, 0};
-int LFSensor_prev[3] = {0, 0, 0};
 
-float Kp = 30;
-float Ki = 0.7;
-float Kd = 100;
-
-float error = 0, P = 0, I = 0, D = 0, PIDvalue = 0;
-float previousError = 0, previousI = 0;
-// const int power = 500;
-const int iniMotorPower = 100;
-const int adj = 1;
-// float adjTurn = 8;
-
-int leftMotorSpeed = iniMotorPower;
-int rightMotorSpeed = iniMotorPower;
-
-enum operation_enum
-{
-  stopped,
-  following_line,
-  no_line,
-  recovery,
-  avoidance,
-};
-operation_enum operationMode = stopped;
-
-enum fail_mode_enum
-{
-  no_failure,
-  diverted_left,
-  diverted_right,
-};
-fail_mode_enum failStatus = no_failure;
-
-#define PWM_VAL 100
 
 void setup()
 {
   Serial.begin(9600);          // start serial monitor and set baud rate to 9600
-  pinMode(left_ctrl, OUTPUT);  // set direction control pin of A motor to OUTPUT
-  pinMode(left_pwm, OUTPUT);   // set PWM control pin of A motor to OUTPUT
-  pinMode(right_ctrl, OUTPUT); // set direction control pin of B motor to OUTPUT
-  pinMode(right_pwm, OUTPUT);  // set PWM control pin of B motor to OUTPUT
-  pinMode(sensor_l, INPUT);    // set the pins of left line tracking sensor to INPUT
-  pinMode(sensor_c, INPUT);    // set the pins of middle line tracking sensor to INPUT
-  pinMode(sensor_r, INPUT);    // set the pins of right line tracking sensor to INPUT
 
-  digitalWrite(left_ctrl, HIGH);
-  digitalWrite(right_ctrl, HIGH);
+  LineSensor::init();
 
-  pinMode(L_LED, OUTPUT);
-  pinMode(R_LED, OUTPUT);
-
+  Motor::init();
+  Led::init();
   ColorSensor::init();
   ColorSensor::generate_gamma_table();
 
   servopulse(servopin, 90); // the angle of servo is 90 degree
   delay(300);
 
-  MsTimer2::set(20, motorDriveRoutine); // 500ms period
+  MsTimer2::set(20, Motor::motorDriveRoutine); // 500ms period
   MsTimer2::start();
 }
 
@@ -102,30 +48,30 @@ void loop()
   ColorSensor::read();
   delay(60);
 
-  if (failStatus==diverted_left) {
-      L_BLINK();
-      motorWrite(left_ctrl, left_pwm, -100);
-      motorWrite(right_ctrl, right_pwm, 100);
+  if (Motor::failStatus == failMode::diverted_left) {
+      Led::L_BLINK();
+      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, -100);
+      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
       delay(100);
-      failStatus = no_failure;
-      operationMode = stopped;
-  } else if (failStatus==diverted_right) {
-      R_BLINK();
-      motorWrite(left_ctrl, left_pwm, 100);
-      motorWrite(right_ctrl, right_pwm, -100);
+      Motor::failStatus = failMode::no_failure;
+      Motor::mode = OpMode::stopped;
+  } else if (Motor::failStatus == failMode::diverted_right) {
+      Led::R_BLINK();
+      Motor::Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -100);
       delay(100);
-      failStatus = no_failure;
-      operationMode = stopped;
+      Motor::failStatus = failMode::no_failure;
+      Motor::mode = OpMode::stopped;
   } 
 
-  if (operationMode == avoidance) {
+  if (Motor::mode == OpMode::avoidance) {
       avoidRightPath();
   }
 
   distance1 = sr04.Distance();             // obtain the value detected by ultrasonic sensor
   if ((distance1 < 15) && (distance1 > 0)) // if the distance is greater than 0 and less than 10
   {
-    operationMode = avoidance;
+    Motor::mode = OpMode::avoidance;
   }
 }
 
@@ -135,32 +81,32 @@ void avoidRightPath(){
       int turn_duration = 520;
       int straight_duration = 2000;
       //turn right
-      motorWrite(left_ctrl, left_pwm, 200);
-      motorWrite(right_ctrl, right_pwm, -200);
+      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, 200);
+      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -200);
       delay(turn_duration);
       //straight
-      motorWrite(left_ctrl, left_pwm, 100);
-      motorWrite(right_ctrl, right_pwm, 100);
+      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
       delay(straight_duration);
       //turn left
-      motorWrite(left_ctrl, left_pwm, -200);
-      motorWrite(right_ctrl, right_pwm, 200);
+      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, -200);
+      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 200);
       delay(turn_duration);
       //straight
-      motorWrite(left_ctrl, left_pwm, 100);
-      motorWrite(right_ctrl, right_pwm, 100);
+      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
       delay(straight_duration);
       //turn left 
-      motorWrite(left_ctrl, left_pwm, -200);
-      motorWrite(right_ctrl, right_pwm, 200);
+      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, -200);
+      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 200);
       delay(turn_duration);
       //straight
-      motorWrite(left_ctrl, left_pwm, 100);
-      motorWrite(right_ctrl, right_pwm, 100);
+      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
       delay(straight_duration);
       //turn right 
-      motorWrite(left_ctrl, left_pwm, 200);
-      motorWrite(right_ctrl, right_pwm, -200);
+      Motor::motorWrite(LEFT_CTRL_PIN, LEFT_PWM_PIN, 200);
+      Motor::motorWrite(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -200);
       delay(turn_duration);
 }
 
@@ -174,192 +120,4 @@ void servopulse(int servopin, int myangle) // the running angle of servo
     digitalWrite(servopin, LOW);
     delay(20 - pulsewidth / 1000);
   }
-}
-
-char buff[30];
-void motorDriveRoutine()
-{
-  if (operationMode != avoidance) {
-    readLFSsensors();
-  }
-  // dump();
-  if (operationMode == following_line)
-  {
-    calculatePID();
-    motorPIDcontrol();
-    // checkPIDvalues();
-    // dumpPID();
-  } else if (operationMode == recovery) {
-   //do nothing 
-  } else if (operationMode == avoidance) {
-    //do nothing
-  } 
-  else if (operationMode == no_line || operationMode == stopped)
-  {
-    if (LFSensor_prev[0]!=LFSensor[0] || LFSensor_prev[1]!=LFSensor[1] || LFSensor_prev[2]!=LFSensor[2]) {
-      //The diversion from the line is detected for the first time 
-      //Trigger recovery mode 
-      if (LFSensor_prev[0]==1 && LFSensor[0] == 0) {
-        failStatus = diverted_left;
-      } else if (LFSensor_prev[2]==1 && LFSensor[2] == 0) {
-        failStatus = diverted_right;
-      }
-    }
-    Stop();
-    operationMode = recovery;
-  }
-  LFSensor_prev[0] = LFSensor[0];
-  LFSensor_prev[1] = LFSensor[1];
-  LFSensor_prev[2] = LFSensor[2];
-}
-
-void checkPIDvalues()
-{
-  Serial.print("P:");
-  Serial.print(Kp * P);
-  Serial.print(",I:");
-  Serial.print(Ki * I);
-  Serial.print(",D:");
-  Serial.println(Kd * D);
-}
-
-void dumpPID()
-{
-  Serial.print(PIDvalue);
-  Serial.print(" ==> Left, Right:  ");
-  Serial.print(leftMotorSpeed);
-  Serial.print("   ");
-  Serial.println(rightMotorSpeed);
-}
-
-void dump()
-{
-  Serial.print("l_val:");
-  Serial.print(LFSensor[0]);
-  Serial.print(",c_val:");
-  Serial.print(LFSensor[1]);
-  Serial.print(",r_val:");
-  Serial.print(LFSensor[2]);
-  Serial.print(",color:");
-  Serial.println((int)ColorSensor::colorStatus);
-}
-
-void readLFSsensors()
-{
-  LFSensor[0] = digitalRead(sensor_l);
-  LFSensor[1] = digitalRead(sensor_c);
-  LFSensor[2] = digitalRead(sensor_r);
-
-  if ((LFSensor[0] == 0) && (LFSensor[1] == 0) && (LFSensor[2] == 1))
-  {
-    operationMode = following_line;
-    error = 2;
-    R_ON_BRIGHT();
-  }
-  else if ((LFSensor[0] == 0) && (LFSensor[1] == 1) && (LFSensor[2] == 1))
-  {
-    operationMode = following_line;
-    error = 1;
-    R_ON();
-  }
-  else if ((LFSensor[0] == 0) && (LFSensor[1] == 1) && (LFSensor[2] == 0))
-  {
-    operationMode = following_line;
-    error = 0;
-    LR_ON();
-  }
-  else if ((LFSensor[0] == 1) && (LFSensor[1] == 1) && (LFSensor[2] == 0))
-  {
-    operationMode = following_line;
-    error = -1;
-    L_ON();
-  }
-  else if ((LFSensor[0] == 1) && (LFSensor[1] == 0) && (LFSensor[2] == 0))
-  {
-    operationMode = following_line;
-    error = -2;
-    L_ON_BRIGHT();
-  }
-  else if ((LFSensor[0] == 1) && (LFSensor[1] == 1) && (LFSensor[2] == 1))
-  {
-    operationMode = following_line;
-    error = 0;
-    LR_ON_BRIGHT();
-  }
-  else if ((LFSensor[0] == 0) && (LFSensor[1] == 0) && (LFSensor[2] == 0))
-  {
-    if (operationMode != recovery) {
-      operationMode = no_line;
-    }
-    error = 0;
-    LR_OFF();
-  }
-}
-
-void calculatePID()
-{
-  P = error;
-  I = I + error;
-  D = error - previousError;
-  PIDvalue = (Kp * P) + (Ki * I) + (Kd * D);
-  previousError = error;
-}
-
-void motorPIDcontrol()
-{
-  leftMotorSpeed = iniMotorPower + PIDvalue;
-  rightMotorSpeed = iniMotorPower * adj - PIDvalue;
-  // The motor speed should not exceed the max PWM value
-  leftMotorSpeed = constrain(leftMotorSpeed, -255, 255);
-  rightMotorSpeed = constrain(rightMotorSpeed, -255, 255);
-
-  motorWrite(left_ctrl, left_pwm, leftMotorSpeed);
-  motorWrite(right_ctrl, right_pwm, rightMotorSpeed);
-}
-
-void motorWrite(int dir_pin, int speed_pin, int speed)
-{
-  if (speed > 0)
-  {
-    digitalWrite(dir_pin, HIGH);
-  }
-  else
-  {
-    digitalWrite(dir_pin, LOW);
-  }
-  analogWrite(speed_pin, speed);
-}
-
-void back() // define the status of going forward
-{
-  digitalWrite(left_ctrl, LOW);
-  analogWrite(left_pwm, PWM_VAL);
-  digitalWrite(right_ctrl, LOW);
-  analogWrite(right_pwm, PWM_VAL);
-}
-void front() // define the state of going back
-{
-  digitalWrite(left_ctrl, HIGH);
-  analogWrite(left_pwm, PWM_VAL);
-  digitalWrite(right_ctrl, HIGH);
-  analogWrite(right_pwm, PWM_VAL);
-}
-void left() // define the left-turning state
-{
-  digitalWrite(left_ctrl, LOW);
-  analogWrite(left_pwm, PWM_VAL);
-  digitalWrite(right_ctrl, HIGH);
-  analogWrite(right_pwm, PWM_VAL);
-}
-void right() // define the right-turning state
-{
-  digitalWrite(left_ctrl, HIGH);
-  analogWrite(left_pwm, PWM_VAL);
-  digitalWrite(right_ctrl, LOW);
-  analogWrite(right_pwm, PWM_VAL);
-}
-void Stop() // define the state of stop
-{
-  analogWrite(left_pwm, 0);
-  analogWrite(right_pwm, 0);
 }
