@@ -39,8 +39,8 @@ void loop()
       Motor::mode = OpMode::stopped;
   } else if (Motor::failStatus == failMode::diverted_right) {
       Led::R_BLINK();
-      Motor::Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
-      Motor::Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -100);
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -100);
       delay(100);
       Motor::failStatus = failMode::no_failure;
       Motor::mode = OpMode::stopped;
