@@ -88,6 +88,42 @@ void Motor::driveRoutine()
   LineSensor::prev[2] = LineSensor::cur[2];
 }
 
+void Motor::avoidRightPath(){
+      //TODO:
+      //復帰を検知したら中止してLine following動作をさせたい
+      int turn_duration = 520;
+      int straight_duration = 2000;
+      //turn right
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 200);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -200);
+      delay(turn_duration);
+      //straight
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
+      delay(straight_duration);
+      //turn left
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, -200);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 200);
+      delay(turn_duration);
+      //straight
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
+      delay(straight_duration);
+      //turn left 
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, -200);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 200);
+      delay(turn_duration);
+      //straight
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
+      delay(straight_duration);
+      //turn right 
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 200);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -200);
+      delay(turn_duration);
+}
+
+
 void checkPIDvalues()
 {
   Serial.print("P:");

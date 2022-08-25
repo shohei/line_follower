@@ -34,6 +34,7 @@ public:
     static void left();
     static void right();
     static void Stop();
+    static void avoidRightPath();
 
     inline static OpMode mode;
     inline static failMode failStatus;
