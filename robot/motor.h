@@ -47,19 +47,6 @@ public:
   inline static float previousI;
   static int leftMotorSpeed;
   static int rightMotorSpeed;
-
-  enum class CommandName
-  {
-    Forward,
-    Backward,
-    TurnLeft,
-    TurnRight,
-  };
-  typedef struct Command_
-  {
-    CommandName name;
-    int value;
-  } Command, *pCommand;
 };
 
 #endif

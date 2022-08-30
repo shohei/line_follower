@@ -1,0 +1,255 @@
+test command array
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch main
+# Your branch is up to date with 'origin/main'.
+#
+# Changes to be committed:
+#	modified:   line_sensor.cpp
+#	modified:   line_sensor.h
+#	modified:   motor.cpp
+#	modified:   motor.h
+#	modified:   robot.ino
+#
+# ------------------------ >8 ------------------------
+# Do not modify or remove the line above.
+# Everything below it will be ignored.
+diff --git a/robot/line_sensor.cpp b/robot/line_sensor.cpp
+index 3caf77e..ccec733 100644
+--- a/robot/line_sensor.cpp
++++ b/robot/line_sensor.cpp
+@@ -15,9 +15,7 @@ void LineSensor::init()
+ 
+ void LineSensor::read()
+ {
+-  LineSensor::cur[0] = digitalRead(SENSOR_LEFT);
+-  LineSensor::cur[1] = digitalRead(SENSOR_CENTER);
+-  LineSensor::cur[2] = digitalRead(SENSOR_RIGHT);
++  LineSensor::updateCurrent();
+ 
+   if ((LineSensor::cur[0] == 0) && (LineSensor::cur[1] == 0) && (LineSensor::cur[2] == 1))
+   {
+@@ -65,6 +63,18 @@ void LineSensor::read()
+   }
+ }
+ 
++void LineSensor::updateCurrent(){
++  LineSensor::cur[0] = digitalRead(SENSOR_LEFT);
++  LineSensor::cur[1] = digitalRead(SENSOR_CENTER);
++  LineSensor::cur[2] = digitalRead(SENSOR_RIGHT);
++}
++
++void LineSensor::updatePrevious(){
++  LineSensor::prev[0] = LineSensor::cur[0];
++  LineSensor::prev[1] = LineSensor::cur[1];
++  LineSensor::prev[2] = LineSensor::cur[2];
++}
++
+ void LineSensor::dump()
+ {
+   Serial.print("l_val:");
+diff --git a/robot/line_sensor.h b/robot/line_sensor.h
+index dc6f6f7..47c5486 100644
+--- a/robot/line_sensor.h
++++ b/robot/line_sensor.h
+@@ -7,6 +7,8 @@ public:
+     static void init();
+     static void read();
+     static void dump();
++    static void updateCurrent();
++    static void updatePrevious();
+     inline static int cur[3];
+     inline static int prev[3];
+ };
+diff --git a/robot/motor.cpp b/robot/motor.cpp
+index c0848e2..882a93f 100644
+--- a/robot/motor.cpp
++++ b/robot/motor.cpp
+@@ -53,10 +53,14 @@ void Motor::write(int dir_pin, int speed_pin, int speed)
+ 
+ void Motor::driveRoutine()
+ {
+-  if (Motor::mode != OpMode::avoidance) {
++  if (Motor::mode == OpMode::avoidance) {
++    //just read the sensor without updating the operation mode
++    LineSensor::updateCurrent();
++  } else {
+     LineSensor::read();
+   }
+   // LineSensor::dump();
++
+   if (Motor::mode == OpMode::following_line)
+   {
+     Motor::calculatePID();
+@@ -66,14 +70,14 @@ void Motor::driveRoutine()
+   } else if (Motor::mode == OpMode::recovery) {
+    //do nothing 
+   } else if (Motor::mode == OpMode::avoidance) {
+-    //do nothing
++   //pre-programmedな経路の移動 
+   } 
+   else if (Motor::mode == OpMode::no_line || Motor::mode == OpMode::stopped)
+   {
+     if (LineSensor::prev[0]!=LineSensor::cur[0] || 
+        LineSensor::prev[1]!=LineSensor::cur[1] || 
+       LineSensor::prev[2]!=LineSensor::cur[2]) {
+-      //The diversion from the line is detected for the first time 
++      //The deviation from the line is detected for the first time 
+       //Trigger recovery mode 
+       if (LineSensor::prev[0]==1 && LineSensor::cur[0] == 0) {
+         Motor::failStatus = failMode::deviated_left;
+@@ -84,9 +88,8 @@ void Motor::driveRoutine()
+     Motor::Stop();
+     Motor::mode = OpMode::recovery;
+   }
+-  LineSensor::prev[0] = LineSensor::cur[0];
+-  LineSensor::prev[1] = LineSensor::cur[1];
+-  LineSensor::prev[2] = LineSensor::cur[2];
++
++  LineSensor::updatePrevious();
+ }
+ 
+ void Motor::checkDeviation(){
+diff --git a/robot/motor.h b/robot/motor.h
+index 926123a..8b443d9 100644
+--- a/robot/motor.h
++++ b/robot/motor.h
+@@ -5,49 +5,61 @@
+ 
+ enum class OpMode
+ {
+-    stopped,
+-    following_line,
+-    no_line,
+-    recovery,
+-    avoidance,
++  stopped,
++  following_line,
++  no_line,
++  recovery,
++  avoidance,
+ };
+ 
+-enum class failMode 
++enum class failMode
+ {
+   no_failure,
+   deviated_left,
+   deviated_right,
+ };
+-
+ class Motor
+ {
+ public:
+-    static void init();
+-    static void calculatePID();
+-    static void dumpPID();
+-    static void executePIDcontrol();
+-    static void write(int dir_pin, int speed_pin, int speed);
+-    static void driveRoutine();
+-    static void checkPIDValues();
+-    static void back();
+-    static void front();
+-    static void left();
+-    static void right();
+-    static void Stop();
+-    static void avoidRightPath();
+-    static void checkDeviation();
++  static void init();
++  static void calculatePID();
++  static void dumpPID();
++  static void executePIDcontrol();
++  static void write(int dir_pin, int speed_pin, int speed);
++  static void driveRoutine();
++  static void checkPIDValues();
++  static void back();
++  static void front();
++  static void left();
++  static void right();
++  static void Stop();
++  static void avoidRightPath();
++  static void checkDeviation();
++
++  inline static OpMode mode;
++  inline static failMode failStatus;
++  inline static float error;
++  inline static float P;
++  inline static float I;
++  inline static float D;
++  inline static float PIDvalue;
++  inline static float previousError;
++  inline static float previousI;
++  static int leftMotorSpeed;
++  static int rightMotorSpeed;
+ 
+-    inline static OpMode mode;
+-    inline static failMode failStatus;
+-    inline static float error;
+-    inline static float P;
+-    inline static float I;
+-    inline static float D;
+-    inline static float PIDvalue;
+-    inline static float previousError;
+-    inline static float previousI;
+-    static int leftMotorSpeed;
+-    static int rightMotorSpeed;
++  enum class CommandName
++  {
++    Forward,
++    Backward,
++    TurnLeft,
++    TurnRight,
++  };
++  typedef struct Command_
++  {
++    CommandName name;
++    int value;
++  } Command, *pCommand;
+ };
+ 
+ #endif
+\ No newline at end of file
+diff --git a/robot/robot.ino b/robot/robot.ino
+index f2c8101..e6a8c3f 100644
+--- a/robot/robot.ino
++++ b/robot/robot.ino
+@@ -9,6 +9,12 @@
+ #include "preference.h"
+ #include "ultrasonic.h"
+ 
++const Motor::Command mycom[] = {
++  {Motor::CommandName::Forward, 10},
++  {Motor::CommandName::TurnLeft, 20},
++  {Motor::CommandName::TurnRight, 30}
++};
++
+ void setup()
+ {
+   Serial.begin(9600);          // start serial monitor and set baud rate to 9600
+@@ -23,6 +29,16 @@ void setup()
+ 
+   MsTimer2::set(20, Motor::driveRoutine); // 500ms period
+   MsTimer2::start();
++
++  Serial.println("Commands1:");
++  Serial.println((int)mycom[0].name);
++  Serial.println(mycom[0].value);
++  Serial.println("Commands2:");
++  Serial.println((int)mycom[1].name);
++  Serial.println(mycom[1].value);
++  Serial.println("Commands3:");
++  Serial.println((int)mycom[2].name);
++  Serial.println(mycom[2].value);
+ }
+ 
+ void loop()
+@@ -32,6 +48,8 @@ void loop()
+ 
+   Motor::checkDeviation();
+ 
++  //TODO: これ(=pre-programmedな経路の移動)をdriveRoutine()で処理したい.
++  //ここのavoidRightPath()の記述を置き換える
+   if (Motor::mode == OpMode::avoidance) {
+       Motor::avoidRightPath();
+   }

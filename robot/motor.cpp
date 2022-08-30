@@ -145,7 +145,6 @@ void Motor::avoidRightPath(){
       delay(turn_duration);
 }
 
-
 void checkPIDvalues()
 {
   Serial.print("P:");

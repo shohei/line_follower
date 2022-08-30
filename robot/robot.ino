@@ -8,11 +8,18 @@
 #include "line_sensor.h"
 #include "preference.h"
 #include "ultrasonic.h"
+#include "commands.h"
 
-const Motor::Command mycom[] = {
-  {Motor::CommandName::Forward, 10},
-  {Motor::CommandName::TurnLeft, 20},
-  {Motor::CommandName::TurnRight, 30}
+#define LENGTH(commandArray) (sizeof(commandArray)/sizeof(commandArray[0]))
+
+const Command avoidRight[] = {
+    {CommandName::TurnRight, 520},
+    {CommandName::Forward, 2000},
+    {CommandName::TurnLeft, 520},
+    {CommandName::Forward, 2000},
+    {CommandName::TurnLeft, 520},
+    {CommandName::Forward, 2000},
+    {CommandName::TurnRight, 520},
 };
 
 void setup()
@@ -30,15 +37,7 @@ void setup()
   MsTimer2::set(20, Motor::driveRoutine); // 500ms period
   MsTimer2::start();
 
-  Serial.println("Commands1:");
-  Serial.println((int)mycom[0].name);
-  Serial.println(mycom[0].value);
-  Serial.println("Commands2:");
-  Serial.println((int)mycom[1].name);
-  Serial.println(mycom[1].value);
-  Serial.println("Commands3:");
-  Serial.println((int)mycom[2].name);
-  Serial.println(mycom[2].value);
+  Command::dump(avoidRight, LENGTH(avoidRight));
 }
 
 void loop()
