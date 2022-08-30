@@ -7,6 +7,17 @@
 int Motor::leftMotorSpeed = INITIAL_MOTOR_POWER;
 int Motor::rightMotorSpeed = INITIAL_MOTOR_POWER;
 
+const Command Motor::avoidRight[] = {
+    {CommandName::TurnRight, 520},
+    {CommandName::Forward, 2000},
+    {CommandName::TurnLeft, 520},
+    {CommandName::Forward, 2000},
+    {CommandName::TurnLeft, 520},
+    {CommandName::Forward, 2000},
+    {CommandName::TurnRight, 520},
+};
+int Motor::avoidRightLength = sizeof(avoidRight)/sizeof(avoidRight[0]);
+
 void Motor::init()
 {
     pinMode(LEFT_CTRL_PIN, OUTPUT);  // set direction control pin of A motor to OUTPUT
@@ -108,41 +119,6 @@ void Motor::checkDeviation(){
       Motor::failStatus = failMode::no_failure;
       Motor::mode = OpMode::stopped;
   } 
-}
-
-void Motor::avoidRightPath(){
-      //TODO:
-      //復帰を検知したら中止してLine following動作をさせたい
-      int turn_duration = 520;
-      int straight_duration = 2000;
-      //turn right
-      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 200);
-      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -200);
-      delay(turn_duration);
-      //straight
-      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
-      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
-      delay(straight_duration);
-      //turn left
-      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, -200);
-      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 200);
-      delay(turn_duration);
-      //straight
-      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
-      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
-      delay(straight_duration);
-      //turn left 
-      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, -200);
-      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 200);
-      delay(turn_duration);
-      //straight
-      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
-      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
-      delay(straight_duration);
-      //turn right 
-      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 200);
-      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -200);
-      delay(turn_duration);
 }
 
 void checkPIDvalues()

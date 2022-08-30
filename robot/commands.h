@@ -16,6 +16,7 @@ public:
     int value;
     static void dump(const Command commands[], int length);
     static void run(const Command commands[], int length);
+    static const Command avoidRight[];
 };
 
 #endif

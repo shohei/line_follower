@@ -10,18 +10,6 @@
 #include "ultrasonic.h"
 #include "commands.h"
 
-#define LENGTH(commandArray) (sizeof(commandArray)/sizeof(commandArray[0]))
-
-const Command avoidRight[] = {
-    {CommandName::TurnRight, 520},
-    {CommandName::Forward, 2000},
-    {CommandName::TurnLeft, 520},
-    {CommandName::Forward, 2000},
-    {CommandName::TurnLeft, 520},
-    {CommandName::Forward, 2000},
-    {CommandName::TurnRight, 520},
-};
-
 void setup()
 {
   Serial.begin(9600);          // start serial monitor and set baud rate to 9600
@@ -37,7 +25,6 @@ void setup()
   MsTimer2::set(20, Motor::driveRoutine); // 500ms period
   MsTimer2::start();
 
-  Command::dump(avoidRight, LENGTH(avoidRight));
 }
 
 void loop()
@@ -50,7 +37,7 @@ void loop()
   //TODO: これ(=pre-programmedな経路の移動)をdriveRoutine()で処理したい.
   //ここのavoidRightPath()の記述を置き換える
   if (Motor::mode == OpMode::avoidance) {
-      Motor::avoidRightPath();
+      Command::run(Motor::avoidRight, Motor::avoidRightLength);
   }
 
   Ultrasonic::check();

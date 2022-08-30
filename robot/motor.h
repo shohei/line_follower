@@ -2,6 +2,7 @@
 #define MOTOR_H
 
 #include "preference.h"
+#include "commands.h"
 
 enum class OpMode
 {
@@ -47,6 +48,8 @@ public:
   inline static float previousI;
   static int leftMotorSpeed;
   static int rightMotorSpeed;
+  static const Command avoidRight[];
+  static int avoidRightLength;
 };
 
 #endif

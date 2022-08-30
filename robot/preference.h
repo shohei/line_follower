@@ -20,6 +20,7 @@
 #define TRIG_PIN 12 // set the signal input of ultrasonic sensor to D12
 #define ECHO_PIN 13 // set the signal output of ultrasonic sensor to D13
 #define SERVO_PIN 3 // set the pin of servo to D10: OC2B. Pin 11: OC2A
+
 class Preference
 {
   private:

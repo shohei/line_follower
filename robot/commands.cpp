@@ -3,6 +3,16 @@
 #include "motor.h"
 #include <Arduino.h>
 
+const Command avoidRight[] = {
+    {CommandName::TurnRight, 520},
+    {CommandName::Forward, 2000},
+    {CommandName::TurnLeft, 520},
+    {CommandName::Forward, 2000},
+    {CommandName::TurnLeft, 520},
+    {CommandName::Forward, 2000},
+    {CommandName::TurnRight, 520},
+};
+
 void Command::run(const Command commands[], int length)
 {
     for (int i = 0; i < length; i++)
