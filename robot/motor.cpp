@@ -7,14 +7,18 @@
 int Motor::leftMotorSpeed = INITIAL_MOTOR_POWER;
 int Motor::rightMotorSpeed = INITIAL_MOTOR_POWER;
 
+#define TURN_DURATION_1 520
+#define TURN_DURATION_2 300
+#define STRAIGHT_DURATION 2000
+
 const Command Motor::avoidRight[] = {
-    {CommandName::TurnRight, 520},
-    {CommandName::Forward, 2000},
-    {CommandName::TurnLeft, 520},
-    {CommandName::Forward, 2000},
-    {CommandName::TurnLeft, 520},
-    {CommandName::Forward, 2000},
-    {CommandName::TurnRight, 520},
+    {CommandName::TurnRight, TURN_DURATION_1, false},
+    {CommandName::Forward, STRAIGHT_DURATION, false},
+    {CommandName::TurnLeft, TURN_DURATION_1, false},
+    {CommandName::Forward, STRAIGHT_DURATION, false},
+    {CommandName::TurnLeft, TURN_DURATION_2, false},
+    {CommandName::Forward, STRAIGHT_DURATION, false},
+    {CommandName::TurnRight, TURN_DURATION_2, true},
 };
 int Motor::avoidRightLength = sizeof(avoidRight)/sizeof(avoidRight[0]);
 
@@ -105,14 +109,14 @@ void Motor::driveRoutine()
 
 void Motor::checkDeviation(){
   if (Motor::failStatus == failMode::deviated_left) {
-      Led::L_BLINK();
+      Led::L_Blink();
       Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, -100);
       Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
       delay(100);
       Motor::failStatus = failMode::no_failure;
       Motor::mode = OpMode::stopped;
   } else if (Motor::failStatus == failMode::deviated_right) {
-      Led::R_BLINK();
+      Led::R_Blink();
       Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
       Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -100);
       delay(100);
@@ -140,37 +144,37 @@ void dumpPID()
   Serial.println(Motor::Motor::rightMotorSpeed);
 }
 
-void Motor::back() // define the status of going forward
-{
-  digitalWrite(LEFT_CTRL_PIN, LOW);
-  analogWrite(LEFT_PWM_PIN, PWM_VAL);
-  digitalWrite(RIGHT_CTRL_PIN, LOW);
-  analogWrite(RIGHT_PWM_PIN, PWM_VAL);
-}
+// void Motor::back() // define the status of going forward
+// {
+//   digitalWrite(LEFT_CTRL_PIN, LOW);
+//   analogWrite(LEFT_PWM_PIN, PWM_VAL);
+//   digitalWrite(RIGHT_CTRL_PIN, LOW);
+//   analogWrite(RIGHT_PWM_PIN, PWM_VAL);
+// }
 
-void Motor::front() // define the state of going back
-{
-  digitalWrite(LEFT_CTRL_PIN, HIGH);
-  analogWrite(LEFT_PWM_PIN, PWM_VAL);
-  digitalWrite(RIGHT_CTRL_PIN, HIGH);
-  analogWrite(RIGHT_PWM_PIN, PWM_VAL);
-}
+// void Motor::front() // define the state of going back
+// {
+//   digitalWrite(LEFT_CTRL_PIN, HIGH);
+//   analogWrite(LEFT_PWM_PIN, PWM_VAL);
+//   digitalWrite(RIGHT_CTRL_PIN, HIGH);
+//   analogWrite(RIGHT_PWM_PIN, PWM_VAL);
+// }
 
-void Motor::left() // define the left-turning state
-{
-  digitalWrite(LEFT_CTRL_PIN, LOW);
-  analogWrite(LEFT_PWM_PIN, PWM_VAL);
-  digitalWrite(RIGHT_CTRL_PIN, HIGH);
-  analogWrite(RIGHT_PWM_PIN, PWM_VAL);
-}
+// void Motor::left() // define the left-turning state
+// {
+//   digitalWrite(LEFT_CTRL_PIN, LOW);
+//   analogWrite(LEFT_PWM_PIN, PWM_VAL);
+//   digitalWrite(RIGHT_CTRL_PIN, HIGH);
+//   analogWrite(RIGHT_PWM_PIN, PWM_VAL);
+// }
 
-void Motor::right() // define the right-turning state
-{
-  digitalWrite(LEFT_CTRL_PIN, HIGH);
-  analogWrite(LEFT_PWM_PIN, PWM_VAL);
-  digitalWrite(RIGHT_CTRL_PIN, LOW);
-  analogWrite(RIGHT_PWM_PIN, PWM_VAL);
-}
+// void Motor::right() // define the right-turning state
+// {
+//   digitalWrite(LEFT_CTRL_PIN, HIGH);
+//   analogWrite(LEFT_PWM_PIN, PWM_VAL);
+//   digitalWrite(RIGHT_CTRL_PIN, LOW);
+//   analogWrite(RIGHT_PWM_PIN, PWM_VAL);
+// }
 
 void Motor::Stop() // define the state of stop
 {

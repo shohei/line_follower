@@ -11,12 +11,15 @@ enum class CommandName
 
 class Command
 {
+private:
+    static bool isLineDetected(int duration_ms, bool isStoppable);
+
 public:
     CommandName name;
     int value;
+    bool isStoppable;
     static void dump(const Command commands[], int length);
     static void run(const Command commands[], int length);
-    static const Command avoidRight[];
 };
 
 #endif

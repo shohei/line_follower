@@ -48,7 +48,21 @@ void Led::LR_OFF()
   digitalWrite(R_LED, LOW);
 }
 
-void Led::L_BLINK()
+
+void Led::LR_Blink()
+{
+  Led::LR_OFF();
+  for (int i=0;i<5;i++){
+    digitalWrite(L_LED, HIGH);
+    digitalWrite(R_LED, HIGH);
+    delay(20);
+    digitalWrite(L_LED, LOW);
+    digitalWrite(R_LED, LOW);
+    delay(20);
+  }
+}
+
+void Led::L_Blink()
 {
   Led::LR_OFF();
   for (int i=0;i<5;i++){
@@ -59,7 +73,7 @@ void Led::L_BLINK()
   }
 }
 
-void Led::R_BLINK()
+void Led::R_Blink()
 {
   Led::LR_OFF();
   for (int i=0;i<5;i++){

@@ -14,8 +14,9 @@ class Led {
     static void LR_ON();
     static void LR_ON_BRIGHT();
     static void LR_OFF();
-    static void L_BLINK();
-    static void R_BLINK();
+    static void L_Blink();
+    static void R_Blink();
+    static void LR_Blink();
 };
 
 #endif

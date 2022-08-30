@@ -24,7 +24,8 @@ void setup()
 
   MsTimer2::set(20, Motor::driveRoutine); // 500ms period
   MsTimer2::start();
-
+  
+  Command::dump(Motor::avoidRight, Motor::avoidRightLength);
 }
 
 void loop()
