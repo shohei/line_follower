@@ -12,7 +12,7 @@
 
 void setup()
 {
-  Serial.begin(9600);          // start serial monitor and set baud rate to 9600
+  Serial.begin(9600);
 
   LineSensor::init();
   Motor::init();
@@ -25,7 +25,6 @@ void setup()
   MsTimer2::set(20, Motor::driveRoutine); // 500ms period
   MsTimer2::start();
   
-  Command::dump(Motor::avoidRight, Motor::avoidRightLength);
 }
 
 void loop()

@@ -29,10 +29,6 @@ public:
   static void write(int dir_pin, int speed_pin, int speed);
   static void driveRoutine();
   static void checkPIDValues();
-  // static void back();
-  // static void front();
-  // static void left();
-  // static void right();
   static void Stop();
   static void avoidRightPath();
   static void checkDeviation();

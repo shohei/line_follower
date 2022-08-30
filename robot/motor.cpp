@@ -144,38 +144,6 @@ void dumpPID()
   Serial.println(Motor::Motor::rightMotorSpeed);
 }
 
-// void Motor::back() // define the status of going forward
-// {
-//   digitalWrite(LEFT_CTRL_PIN, LOW);
-//   analogWrite(LEFT_PWM_PIN, PWM_VAL);
-//   digitalWrite(RIGHT_CTRL_PIN, LOW);
-//   analogWrite(RIGHT_PWM_PIN, PWM_VAL);
-// }
-
-// void Motor::front() // define the state of going back
-// {
-//   digitalWrite(LEFT_CTRL_PIN, HIGH);
-//   analogWrite(LEFT_PWM_PIN, PWM_VAL);
-//   digitalWrite(RIGHT_CTRL_PIN, HIGH);
-//   analogWrite(RIGHT_PWM_PIN, PWM_VAL);
-// }
-
-// void Motor::left() // define the left-turning state
-// {
-//   digitalWrite(LEFT_CTRL_PIN, LOW);
-//   analogWrite(LEFT_PWM_PIN, PWM_VAL);
-//   digitalWrite(RIGHT_CTRL_PIN, HIGH);
-//   analogWrite(RIGHT_PWM_PIN, PWM_VAL);
-// }
-
-// void Motor::right() // define the right-turning state
-// {
-//   digitalWrite(LEFT_CTRL_PIN, HIGH);
-//   analogWrite(LEFT_PWM_PIN, PWM_VAL);
-//   digitalWrite(RIGHT_CTRL_PIN, LOW);
-//   analogWrite(RIGHT_PWM_PIN, PWM_VAL);
-// }
-
 void Motor::Stop() // define the state of stop
 {
   analogWrite(LEFT_PWM_PIN, 0);
