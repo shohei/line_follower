@@ -15,8 +15,8 @@ enum class OpMode
 enum class failMode 
 {
   no_failure,
-  diverted_left,
-  diverted_right,
+  deviated_left,
+  deviated_right,
 };
 
 class Motor
@@ -35,6 +35,7 @@ public:
     static void right();
     static void Stop();
     static void avoidRightPath();
+    static void checkDeviation();
 
     inline static OpMode mode;
     inline static failMode failStatus;

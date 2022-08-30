@@ -2,6 +2,7 @@
 #include "preference.h"
 #include <Arduino.h>
 #include "line_sensor.h"
+#include "led.h"
 
 int Motor::leftMotorSpeed = INITIAL_MOTOR_POWER;
 int Motor::rightMotorSpeed = INITIAL_MOTOR_POWER;
@@ -75,9 +76,9 @@ void Motor::driveRoutine()
       //The diversion from the line is detected for the first time 
       //Trigger recovery mode 
       if (LineSensor::prev[0]==1 && LineSensor::cur[0] == 0) {
-        Motor::failStatus = failMode::diverted_left;
+        Motor::failStatus = failMode::deviated_left;
       } else if (LineSensor::prev[2]==1 && LineSensor::cur[2] == 0) {
-        Motor::failStatus = failMode::diverted_right;
+        Motor::failStatus = failMode::deviated_right;
       }
     }
     Motor::Stop();
@@ -86,6 +87,24 @@ void Motor::driveRoutine()
   LineSensor::prev[0] = LineSensor::cur[0];
   LineSensor::prev[1] = LineSensor::cur[1];
   LineSensor::prev[2] = LineSensor::cur[2];
+}
+
+void Motor::checkDeviation(){
+  if (Motor::failStatus == failMode::deviated_left) {
+      Led::L_BLINK();
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, -100);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
+      delay(100);
+      Motor::failStatus = failMode::no_failure;
+      Motor::mode = OpMode::stopped;
+  } else if (Motor::failStatus == failMode::deviated_right) {
+      Led::R_BLINK();
+      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
+      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -100);
+      delay(100);
+      Motor::failStatus = failMode::no_failure;
+      Motor::mode = OpMode::stopped;
+  } 
 }
 
 void Motor::avoidRightPath(){

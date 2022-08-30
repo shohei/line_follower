@@ -30,21 +30,7 @@ void loop()
   ColorSensor::read();
   delay(60);// This delay is requried for the color sensor
 
-  if (Motor::failStatus == failMode::diverted_left) {
-      Led::L_BLINK();
-      Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, -100);
-      Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, 100);
-      delay(100);
-      Motor::failStatus = failMode::no_failure;
-      Motor::mode = OpMode::stopped;
-  } else if (Motor::failStatus == failMode::diverted_right) {
-      Led::R_BLINK();
-      Motor::Motor::write(LEFT_CTRL_PIN, LEFT_PWM_PIN, 100);
-      Motor::Motor::write(RIGHT_CTRL_PIN, RIGHT_PWM_PIN, -100);
-      delay(100);
-      Motor::failStatus = failMode::no_failure;
-      Motor::mode = OpMode::stopped;
-  } 
+  Motor::checkDeviation();
 
   if (Motor::mode == OpMode::avoidance) {
       Motor::avoidRightPath();
