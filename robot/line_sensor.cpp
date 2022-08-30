@@ -15,9 +15,7 @@ void LineSensor::init()
 
 void LineSensor::read()
 {
-  LineSensor::cur[0] = digitalRead(SENSOR_LEFT);
-  LineSensor::cur[1] = digitalRead(SENSOR_CENTER);
-  LineSensor::cur[2] = digitalRead(SENSOR_RIGHT);
+  LineSensor::updateCurrent();
 
   if ((LineSensor::cur[0] == 0) && (LineSensor::cur[1] == 0) && (LineSensor::cur[2] == 1))
   {
@@ -63,6 +61,18 @@ void LineSensor::read()
     Motor::error = 0;
     Led::LR_OFF();
   }
+}
+
+void LineSensor::updateCurrent(){
+  LineSensor::cur[0] = digitalRead(SENSOR_LEFT);
+  LineSensor::cur[1] = digitalRead(SENSOR_CENTER);
+  LineSensor::cur[2] = digitalRead(SENSOR_RIGHT);
+}
+
+void LineSensor::updatePrevious(){
+  LineSensor::prev[0] = LineSensor::cur[0];
+  LineSensor::prev[1] = LineSensor::cur[1];
+  LineSensor::prev[2] = LineSensor::cur[2];
 }
 
 void LineSensor::dump()

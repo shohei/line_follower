@@ -53,10 +53,14 @@ void Motor::write(int dir_pin, int speed_pin, int speed)
 
 void Motor::driveRoutine()
 {
-  if (Motor::mode != OpMode::avoidance) {
+  if (Motor::mode == OpMode::avoidance) {
+    //just read the sensor without updating the operation mode
+    LineSensor::updateCurrent();
+  } else {
     LineSensor::read();
   }
   // LineSensor::dump();
+
   if (Motor::mode == OpMode::following_line)
   {
     Motor::calculatePID();
@@ -66,14 +70,14 @@ void Motor::driveRoutine()
   } else if (Motor::mode == OpMode::recovery) {
    //do nothing 
   } else if (Motor::mode == OpMode::avoidance) {
-    //do nothing
+   //pre-programmedな経路の移動 
   } 
   else if (Motor::mode == OpMode::no_line || Motor::mode == OpMode::stopped)
   {
     if (LineSensor::prev[0]!=LineSensor::cur[0] || 
        LineSensor::prev[1]!=LineSensor::cur[1] || 
       LineSensor::prev[2]!=LineSensor::cur[2]) {
-      //The diversion from the line is detected for the first time 
+      //The deviation from the line is detected for the first time 
       //Trigger recovery mode 
       if (LineSensor::prev[0]==1 && LineSensor::cur[0] == 0) {
         Motor::failStatus = failMode::deviated_left;
@@ -84,9 +88,8 @@ void Motor::driveRoutine()
     Motor::Stop();
     Motor::mode = OpMode::recovery;
   }
-  LineSensor::prev[0] = LineSensor::cur[0];
-  LineSensor::prev[1] = LineSensor::cur[1];
-  LineSensor::prev[2] = LineSensor::cur[2];
+
+  LineSensor::updatePrevious();
 }
 
 void Motor::checkDeviation(){
